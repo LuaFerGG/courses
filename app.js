@@ -3,15 +3,20 @@ import mongoose from 'mongoose';
 import userRoutes from './routes/users.js';
 import courseRoutes from './routes/courses.js';
 import taskRoutes from './routes/tasks.js';
-
+import authRoutes from './routes/auth.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const app = express();
+
 const PORT = 3000;
 
+
 app.use(express.json());
+
+app.use('/api/auth', authRoutes);
+
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Conectado con MongoDB'))

@@ -1,7 +1,7 @@
 import express from 'express';
 import User from '../models/user.js';
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
@@ -42,8 +42,16 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        const token = jwt.sign({
+            id: user._id, role: user.role, cohort: user.cohort
+        },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
         res.json({
             message: 'Login successful',
+            token,
             user: { name: user.name, email: user.email, role: user.role }
         });
     } catch (error) {

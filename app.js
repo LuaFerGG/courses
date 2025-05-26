@@ -4,6 +4,7 @@ import userRoutes from './routes/users.js';
 import courseRoutes from './routes/courses.js';
 import taskRoutes from './routes/tasks.js';
 import authRoutes from './routes/auth.js';
+import protectedRoutes from './routes/protected.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -25,6 +26,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/users', userRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/protected', protectedRoutes);
 
 app.get('/', (req, res) => {
     res.send('todo está funcionando :D!');

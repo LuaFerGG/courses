@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import path from 'path';
 import userRoutes from './routes/users.js';
 import courseRoutes from './routes/courses.js';
 import taskRoutes from './routes/tasks.js';
@@ -24,6 +25,7 @@ mongoose.connect(process.env.MONGO_URI)
     .catch((err) => console.error('Error conectando a MongoDB:', err));
 
 app.use('/users', userRoutes);
+app.use('/uploads', express.static('uploads'));
 app.use('/api/courses', courseRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/protected', protectedRoutes);

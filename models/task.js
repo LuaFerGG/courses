@@ -8,7 +8,6 @@ const taskSchema = new mongoose.Schema({
     description: {
         type: String,
     },
-
     creator: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -29,8 +28,10 @@ const taskSchema = new mongoose.Schema({
         min: 0,
         max: 100,
     },
+    pdfUrl: {
+        type: String,
+    }
 }, { timestamps: true });
 
 const Task = mongoose.model('Task', taskSchema);
 export default Task;
-

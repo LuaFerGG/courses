@@ -1,11 +1,13 @@
 import express from 'express';
 import Course from '../models/course.js';
 import Task from '../models/task.js';
+import authMiddleware from "../middleware/authMiddleware.js";
+import { authorizeRoles } from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
 
 // Crear un curso
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, authorizeRoles('teacher'), async (req, res) => {
     try {
         const course = new Course(req.body);
         await course.save();
@@ -16,10 +18,10 @@ router.post('/', async (req, res) => {
 });
 
 // Obtener cursos
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, authorizeRoles('teacher', 'student'), async (req, res) => {
     try {
         const courses = await Course.find()
-            .populate('professors', 'name email role')
+            .populate('teachers', 'name email role')
             .populate('students', 'name email role cohort');
 
         res.json(courses);
@@ -29,10 +31,10 @@ router.get('/', async (req, res) => {
 });
 
 // Obtener un curso por ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authMiddleware, authorizeRoles('teacher', 'student'), async (req, res) => {
     try {
         const course = await Course.findById(req.params.id)
-            .populate('professors', 'name email role')
+            .populate('teachers', 'name email role')
             .populate('students', 'name email role cohort');
 
         if (!course) {
@@ -91,7 +93,7 @@ router.get('/:id', async (req, res) => {
             _id: course._id,
             name: course.name,
             cohort: course.cohort,
-            professors: course.professors,
+            teachers: course.teachers,
             students: course.students,
             leaderboard,
         });

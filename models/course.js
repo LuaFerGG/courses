@@ -5,7 +5,7 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    professors: [{
+    teachers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     }],

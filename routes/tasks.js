@@ -3,6 +3,9 @@ import Task from "../models/task.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
 import upload from '../middleware/uploadMiddleware.js';
+import jwt from 'jsonwebtoken';
+import path from 'path';
+import fs from 'fs';
 
 const router = express.Router();
 
@@ -30,16 +33,44 @@ router.post('/', authMiddleware, authorizeRoles('student'), upload.single('pdf')
 });
 
 router.get('/download/:id', async (req, res) => {
-    try {
-        const task = await Task.findById(req.params.id);
+    const { token } = req.query;
+    const { id } = req.params;
 
+    if (!token) {
+        return res.status(401).json({ error: 'Token requerido en la URL' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id;
+
+        const task = await Task.findById(id)
+            .populate('course', 'students')
+            .populate('creator', '_id');
+        console.log('Tarea encontrada para descarga:', task);
         if (!task || !task.pdfUrl) {
-            return res.status(404).json({ error: 'Archivo no encontrado' });
+            return res.status(404).json({ error: 'Tarea o archivo no encontrado' });
         }
 
-        res.download(task.pdfUrl); // Descarga el archivo
+        const isCreator = task.creator._id.toString() === userId;
+        const isStudentInCourse = task.course.students
+            .map((s) => s.toString())
+            .includes(userId);
+
+        if (!isCreator && !isStudentInCourse) {
+            return res.status(403).json({ error: 'No tienes permiso para descargar este archivo' });
+        }
+
+        const filePath = path.resolve(task.pdfUrl);
+
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ error: 'Archivo no existe en el servidor' });
+        }
+
+        res.download(filePath);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error al verificar token o descargar archivo:', error.message);
+        return res.status(400).json({ error: 'Token inválido o expirado' });
     }
 });
 
